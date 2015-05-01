@@ -7,7 +7,7 @@ tags: []
 ---
 {% include JB/setup %}
 
-#The plan
+##The plan
 
 So this session we will try and build a simple chat funcitonality. Essentially it's going to be based around a single database table which we will have to create. For this to work we will need the following structure
 
@@ -32,15 +32,16 @@ The form will hit a controller, the controller will save the form to the databas
 Now we have a way to add messages to the system, we can make it more user friendly by building this functionality out with angular using services and displaying messages using ng-repeat. This also has the benfit that we can use angulars $timeout on the client side to poll the service for new messages and update the viewmodel accordingly.
 
 
-#What happened 
+##What happened 
 
-#### All code for this tutorial can be found at https://github.com/oi-sendai/AngularBonfire/commit/a3bb58b0c5aabef1ea635e4cf2d44f51c07124f8
+### All code for this tutorial can be found at 
+https://github.com/oi-sendai/AngularBonfire/commit/a3bb58b0c5aabef1ea635e4cf2d44f51c07124f8
 
 First off we created our table.
 
-#####application/modules/chat/migrations/chat.sql
+####application/modules/chat/migrations/chat.sql
 
-```
+```sql
 
 CREATE TABLE `bf_chat` (
 	`message_id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -67,7 +68,7 @@ Lets create a little widget we can include on the page. We already have a set up
 
 #####application/modules/chat/controllers/chat.php
 
-```
+```php
 
     class Chat extends Front_Controller
     {
@@ -90,9 +91,10 @@ Lets create a little widget we can include on the page. We already have a set up
 
 and a container for our view
 
-#####application/modules/chat/views/widget.php
+####application/modules/chat/views/widget.php
 
-```
+```html
+
 <hr/>
 <h4>Contact This User</h4>
 <?php if (empty($current_user)) : ?>
@@ -103,21 +105,25 @@ and a container for our view
     <button type="submit" class="button">
 <?php endif; ?>
 <hr/>
+
 ```
 
 We have already hit our first bottleneck. How to we obtain the username from the current profile page. We are going for some spaggettis now. Or we are avoiding the spaggettis succesfully. Thankfully we have access to $username as a variable in the profile template so we can pass this as an argument when include load our partial
 
-#####somewhere inside profile template
+####somewhere inside profile template
 
-```
+```php
+
 <?php echo Modules::run('chat/widget', $username); ?>
+
 ```
 
 for our conditional logic to work inside the partial we also need to pass a $currentuser argument to our view. The completed controller code 
 
-#####application/modules/chat/controllers/chat.php
+####application/modules/chat/controllers/chat.php
 
-```
+```php
+
 public function widget($username=NULL){
 	$current_user = $this->current_user->id;
     $viewdata = array('data' => 'hello widget');
@@ -125,6 +131,7 @@ public function widget($username=NULL){
     $viewdata = array('current_user' => $current_user );
     $this->load->view('widget', $viewdata);
 }
+
 ```
 
 Great, so now we have a little widget on a users profile page which displays a reminder for the non registered/logged in users and a form for those that are already registered.
