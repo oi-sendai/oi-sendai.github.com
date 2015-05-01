@@ -39,7 +39,9 @@ Now we have a way to add messages to the system, we can make it more user friend
 First off we created our table.
 
 #####application/modules/chat/migrations/chat.sql
+
 ```
+
 CREATE TABLE `bf_chat` (
 	`message_id` INT(11) NOT NULL AUTO_INCREMENT,
 	`sender_id` INT(11) NULL DEFAULT NULL,
@@ -55,6 +57,7 @@ COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB
 AUTO_INCREMENT=4
 ;
+
 ```
 
 We realised that this is going to scale horrendously, but it will do just fine to prototype out our ui. Next step is the form, then we have a beginning and an end, and can approach the middle quite simply.
@@ -65,6 +68,7 @@ Lets create a little widget we can include on the page. We already have a set up
 #####application/modules/chat/controllers/chat.php
 
 ```
+
     class Chat extends Front_Controller
     {
 
