@@ -143,12 +143,333 @@ and our AccountProfileCtrl needs new function to handle the click event on the b
 
 If non of this so far makes sense to you, it might be worth reviewing some of the earlier articles in this series before we move onto the main content of this lesson. Motivation is a funny thing, sometimes it's best to the novel bit first, and that will keep you interested until you solve the puzzle leaving the repitive bit to fist thing in the morning as a reward. Other times you might want to pick away at the challenging part with the tv on in the background safe in the knowledge that the boring stuff is already out the way. Everyone is different and so is everyday. What really happened is I added all the stuff above, and then decided to leave it until the morning while i make the fun bit work.
 
+watch
+          $scope.doStuff = function(input) {
+            console.log(input)
+            mySharedService.prepForBroadcast(input)
+          }
+
+
+AngularBonfire.directive('markdowndisplay', function(theService) {
+    return {
+        restrict: 'E',
+        scope: {username: '@myAttr'},
+        controller: function($scope, $attrs, $q, theService, mySharedService) {
+          var username = $scope.username
+          var defer = $q.defer() 
+          defer.resolve(theService.getAllByUsername(username));
+          defer.promise.then(function (data) {
+              $scope.data = data;
+              console.log($scope.data);
+          $scope.list = data 
+          });
+          // console.log($scope.list);
+
+            $scope.$on('handleBroadcast', function() {
+              var index =  mySharedService.message;
+                 $scope.display = $scope.list[index] //'Directive: ' + mySharedService.message;
+            });
+
+        },
+        replace: true,
+        template: '<article><h4>{{display.name}}</h4><p>{{display.description}}</p><p>{{display.rating}}</p></article>'
+        // template: '<p><h2>{{display.name}}</h2><p>{{display.list}}</p></article>'
+    };
+});
+
+AngularBonfire.factory('mySharedService', function($rootScope) {
+    var sharedService = {};
+
+    sharedService.message = '';
+
+    sharedService.prepForBroadcast = function(msg) {
+        this.message = msg;
+        this.broadcastItem();
+    };
+
+    sharedService.broadcastItem = function() {
+        $rootScope.$broadcast('handleBroadcast');
+    };
+
+    return sharedService;
+});
+
+was what i started with. First thing to do 
+```
+/* this bit */
+AngularBonfire.directive('markdowndisplay', function(theService) {
+    return {
+        restrict: 'E',
+        scope: {username: '@myAttr'},
+        // controller: function($scope, $attrs, $q, theService, mySharedService) {
+        //   var username = $scope.username
+        //   var defer = $q.defer() 
+        //   defer.resolve(theService.getAllByUsername(username));
+        //   defer.promise.then(function (data) {
+        //       $scope.data = data;
+        //       console.log($scope.data);
+        //   $scope.list = data 
+        //   });
+        //   // console.log($scope.list);
+
+        //     $scope.$on('handleBroadcast', function() {
+        //       var index =  mySharedService.message;
+        //          $scope.display = $scope.list[index] //'Directive: ' + mySharedService.message;
+        //     });
+
+        // },
+        replace: true,
+        template: '<article><h4>jkljl</h4></article>'
+        // template: '<p><h2>{{display.name}}</h2><p>{{display.list}}</p></article>'
+    };
+});
+```
+
+renders some stuff. Thats pretty cool. 
+
+next i did this
+```
+/* this bit */
+AngularBonfire.directive('markdowndisplay', function(theService) {
+    return {
+        restrict: 'E',
+        // scope: {username: '@myAttr'},
+        controller: function($scope, $attrs, $q, AccountFactory, markdownBroadcast) {
+          // This is an antipattern i found useful the last time i did this
+          $scope.list = 'tempdata'
+          var defer = $q.defer() 
+          // I think this show method on the factory is only called once
+          defer.resolve(AccountFactory.show());
+          // this because reasons
+          defer.promise.then(function (data) {
+              $scope.data = data;
+          
+              console.log($scope.data);
+              $scope.list = data 
+          });
+
+          // console.log($scope.list);
+
+            // $scope.$on('handleBroadcast', function() {
+              // var index =  mySharedService.message;
+                 // $scope.display = $scope.list[index] //'Directive: ' + mySharedService.message;
+            // });
+
+        },
+        replace: true,
+        template: '<article><h4>{{list}}</h4></article>'
+        // template: '<p><h2>{{display.name}}</h2><p>{{display.list}}</p></article>'
+    };
+});
+```
+
+that word so i added
+```
+```
+
+it then told me markdown was not defined so in my gulpfile.js i added. I'm enjoying working with an asset pipleine
+```
+var config = {
+  jsGlobOrder: [ // You can add your own dependancies here as you build out your app
+      path.assets  +"/angular/angular.js",
+      // path.assets  +"/angular-ui/build/angular-ui.js",
+      path.assets  +"/angular-ui-router.js",
+      path.assets  +"/angular-animate/angular-animate.js",
+      path.assets  +"/ng-file-upload/ng-file-upload-all.js",
+      path.assets  +"/markdown/lib/markdown.js",
+```
+
+i had to notice that it wasnt a bower module and move into my deps folder manually. cp -r node_modules/markdown/ public/bower_components/
+
+now it works, except it doesnt for some reason. I gave up and decided to try
+
+```
+npm install --save marked && cp -r node_modules/marked public/bower_components
+```
+
+then i tried this
+
+```
+
+/* this bit */
+AngularBonfire.directive('markdowndisplay', function(theService) {
+    return {
+        restrict: 'E',
+        // scope: {username: '@myAttr'},
+        controller: function($scope, $attrs, $q, AccountFactory, markdownBroadcast) {
+          // This is an antipattern i found useful the last time i did this
+          $scope.list = 'tempdata'
+          var defer = $q.defer() 
+          // I think this show method on the factory is only called once
+          defer.resolve(AccountFactory.show());
+          // this because reasons
+          defer.promise.then(function (data) {
+              $scope.data = data;
+          
+              console.log($scope.data);
+              $scope.list = marked("#thing \n ##to \n markdown");//data.account_profile);
+          });
+
+          // console.log($scope.list);
+
+            // $scope.$on('handleBroadcast', function() {
+              // var index =  mySharedService.message;
+                 // $scope.display = $scope.list[index] //'Directive: ' + mySharedService.message;
+            // });
+
+        },
+        replace: true,
+        template: '<article ng-bind-html="list"></article>'
+        // template: '<p><h2>{{display.name}}</h2><p>{{display.list}}</p></article>'
+    };
+});
+```
+it gave a weird error about unsafe data in a safe context
+
+next i installed angular sanatize and added it to the gulp path and also into the main AngularBonfire module
+
+```
+// Declare app level module which depends on filters, and services
+var AngularBonfire = angular.module('AngularBonfire', 
+  [
+  'ngAnimate',
+  'ui.router',
+  'ngFileUpload',
+  'ngSanitize'
+  // 'NgJoinCtrl'
+  // ,'ngResource','ngAnimate','ui.bootstrap','ngRoute','firebase'
+  ]);
+
+```
+
+And happily, things now appear to working as they should. Now all we need to do is work out how to get our newlines from the text area.
+
+except it doesnt
+```
+$scope.list = marked("#thing \n ##to \n markdown");//data.account_profile);
+```
+works
+
+but 
+```
+console.log(data.account_profile)// #thing \n ##to \n markdown
+$scope.list = marked(data.account_profile);
+```
+doesn't which is a bit shit at half one in the morning. Was trying to avoid using another third party directive, but i guess this issue has come up before and someone has solved it already, so it's not such a bad thing
+
+its not actually necessary, but at least it includes a markdown parser that works with angular. The target market are high retention users, ie they will have the site loaded in a tab all day, so big massive js files shouldnt be a huge problem.
+
+eventually
+
+```
+<div class="row">
+  <div class="col-6 col-desktop-6">
+<textarea class="markdown-edit" ng-model="account.account_profile" value="{{account.account_profile}}" style="white-space: pre-line">
+    
+</textarea>
+<input type="submit" href="#" class="button" value="save" ng-click="">
+  </div>
+  <div class="col-6 col-desktop-6 account-profile-preview">
+    <!-- {{account.account_profile}} -->
+    <!-- <markdowndisplay></markdowndisplay> -->
+    <div marked="account.account_profile">
+    </div>
+  </div>
+</div>
+
+
+</div>
+```
+```
+        public function update_account_profile(){
+            $data = $this->input->post();
+            $user_id = $this->current_user->id; ;
+            $outcome = $this->account_model->update_account_profile($data['account_profile'], $user_id);
+            return $outcome;
+        }
 
 
 
+```
+        public function update_account_profile($account_profile=NULL, $user_id)
+        {
+            $data = array('account_profile'=> $account_profile);
+            $this->db->where('user_id', $user_id);
+            $query = $this->db->update('account', $data);
+        }
+```
+```
+var AccountProfileCtrl = AngularBonfire.controller('AccountProfileCtrl', ['$scope', '$state', '$timeout',
+  'AccountFactory',
+  function($scope, $state, $timeout
+    , AccountFactory
+    ) {
+
+    $scope.account = {}
+    $scope.saved = '';
+  $scope.init = function(){
+    AccountFactory.show().then(function(data) {
+        console.log(data);
+        $scope.account = data;
+        // $scope.account.account_profile = "This is line 1\nThis is line 2"
+    });
+  }
+  $scope.init(); 
+
+  $scope.save = function(data) {
+    console.log(data);
+    var dataObject = {
+      account_profile : data
+    } 
+
+    AccountFactory.updateProfile(data).then(function(data) {
+
+      $scope.saved = 'saved'
+      $timeout(function(){ $scope.saved = ''; }, 3000);
+    })
+  }  
+
+}])
+```
+```
+  factory.updateProfile = function (data) {
+
+    var deferred = $q.defer();
+
+    var post_data = {
+      'account_profile' : data, 
+      'ci_csrf_token'   : ci_csrf_token()
+    }
+  
+    // so far we have an object we can 'POST' to our form which contains a security token
+    $.post(AngularBonfireUrl+'/api/account/updateprofile', post_data).done(function(sdf){
+        console.log('saved', sdf)
+        deferred.resolve('done')
+    })
+
+    return deferred.promise
+
+  }
+  ```
+  ```
+  <div class="row">
+  <div class="col-6 col-desktop-6">
+<textarea class="markdown-edit" ng-model="account.account_profile" value="{{account.account_profile}}" style="white-space: pre-line">
+    
+</textarea>
+<input type="submit" href="#" class="button" ng-click="save(account.account_profile)"><p>{{saved}}</p>
+  </div>
+  <div class="col-6 col-desktop-6 account-profile-preview">
+    <!-- {{account.account_profile}} -->
+    <!-- <markdowndisplay></markdowndisplay> -->
+    <div marked="account.account_profile">
+    </div>
+  </div>
+</div>
 
 
-
+</div>
+```
 
 
 
